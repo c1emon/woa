@@ -45,9 +45,9 @@ class WOA(object):
             x = agent[i]
             lb = self.Lb[i]
             ub = self.Ub[i]
-            agent = lb if lb > x else x
-            agent = ub if ub < x else x
-            clipped[i] = agent
+            X = lb if lb > x else x
+            X = ub if ub < x else x
+            clipped[i] = X
         return clipped
         
     def run(self):
