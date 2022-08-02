@@ -1,7 +1,7 @@
 import numpy as np
 import random
 import math
-import dwoa
+import WOA
 import matplotlib.pyplot as plt
 
 plt.rcParams['font.sans-serif'] = ['SimHei']  # 显示中文
