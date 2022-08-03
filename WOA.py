@@ -5,7 +5,7 @@
 
 import numpy as np
 
-class WOA(object):
+class CWOA(object):
     def __init__(self, func, n_dim, size_agent, max_iter, lb, ub, verbose=False, **kwargs) -> None:
         """构造/初始化参数
 
