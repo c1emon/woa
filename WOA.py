@@ -1,3 +1,8 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# @Time    : 2022/8/03
+# @Author  : github.com/c1emon
+
 import numpy as np
 
 class WOA(object):
@@ -45,44 +50,49 @@ class WOA(object):
             x = agent[i]
             lb = self.Lb[i]
             ub = self.Ub[i]
-            X = lb if lb > x else x
-            X = ub if ub < x else x
-            clipped[i] = X
+            x = lb if lb > x else x
+            x = ub if ub < x else x
+            clipped[i] = x
         return clipped
         
     def run(self):
         self._init_vlaues()
         for step in range(self.max_iter):
-            a = 2 - 2 * (step/self.max_iter)
-            a2 = -1 + -1 * (step/self.max_iter)
-            # each agent
+            a1 = 2. - 2. * (step/self.max_iter)
+            a2 = (-1.) + (-1.) * (step/self.max_iter)
+            # for each agent
             for i in range(self.size_agent):
-                # r1 r2有待考证
+                # random numbers
                 r1 = np.random.uniform(0, 1, self.n_dim)
                 r2 = np.random.uniform(0, 1, self.n_dim)
-                A = 2 * a * r1 - a
-                C = 2 * r2
-                b = 1
-                l = (a2 - 1) * np.random.random() + 1
-                p = np.random.uniform(0, 1)
+                # coefficients
+                A = 2. * a1 * r1 - a1 # Uniform distribution in [-a, a)
+                C = 2. * r2 #  Uniform distribution in [0, 2)
+                b = 1. # unknown, default set to 1
+                l = (a2 - 1) * np.random.uniform(0, 1) + 1 # Uniform distribution in [-1, 1)
                 
-                if np.random.uniform(0, 1) > 0.5:
-                    agent = self.best_agent + np.abs(self.best_agent - self.agents[i]) * np.exp(b * l) * np.cos(2 * np.pi * l)
+                if np.random.random() >= 0.5:
+                    # 狩猎
+                    D_prime = np.abs(self.best_agent - self.agents[i])
+                    agent = D_prime  * np.exp(b * l) * np.cos(2 * np.pi * l) + self.best_agent
                 else:
-                    
+                    # 包围
                     if np.linalg.norm(A) < 1:
                         # |A| < 1
-                        agent = self.best_agent - np.abs(C * self.best_agent - self.agents[i]) * A
+                        D = np.abs(C * self.best_agent - self.agents[i])
+                        agent = self.best_agent - A * D
                     else:
-                        temp = np.random.randint(0, self.size_agent - 1)
-                        agent = self.agents[temp] - np.abs(C * self.agents[temp] - self.agents[i]) * A
+                        random_agent = np.random.randint(0, self.size_agent - 1)
+                        D_rand = np.abs(C * self.agents[random_agent] - self.agents[i])
+                        agent = self.agents[random_agent] - A * D_rand
                 
+                # check if this agent out of boundary, if out amend it
                 agent = self._clip_agent(agent)
                 fitness = self.func(agent)
-                if fitness < self.fitness[i]:
-                    # agent at now is best, so update
-                    self.agents[i, :] = agent
-                    self.fitness[i] = fitness
+                # update this agent
+                self.agents[i, :] = agent
+                self.fitness[i] = fitness
+            
             # find the best at this step
             self.fitness_min = np.min(self.fitness)
             self.best_agent = self.agents[np.argmin(self.fitness), :]
