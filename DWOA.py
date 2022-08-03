@@ -6,7 +6,7 @@
 import numpy as np
 
 class DWOA(object):
-    def __init__(self, func, n_dim, size_agent, max_iter, lb, ub, precision, verbose=False, **kwargs) -> None:
+    def __init__(self, func, n_dim, size_agent, max_iter, lb, ub, int_ids, int_precisions, verbose=False, **kwargs) -> None:
         """构造/初始化参数
 
         Args:
@@ -16,6 +16,8 @@ class DWOA(object):
             max_iter (int): 最大迭代次数
             lb (array_like): 变量下界
             ub (array_like): 变量上界
+            int_ids (array_like[int]): 整数的索引
+            int_precisions (array_like[int]): 整数的精度
         """
         self.func = func
         self.n_dim = n_dim  # solve dimension
@@ -28,21 +30,24 @@ class DWOA(object):
         # boundary
         self.Lb = lb
         self.Ub = ub
-
+        
+        self.int_ids = int_ids
+        self.int_precisions = int_precisions
+        
         # fitness of every agent
-        self.fitness = np.zeros(self.size_agent)
+        self.fitnesses = np.zeros(self.size_agent)
         # best agent and it's fitness
         self.best_agent = np.zeros(self.n_dim)
-        self.fitness_min = 0.
+        self.best_fitness = 0.
         
     def _init_vlaues(self):
         # random init all agents
         for i in range(self.size_agent):
             self.agents[i, :] = self.Lb + (self.Ub - self.Lb) * np.random.uniform(0, 1, self.n_dim)
-            self.fitness[i] = self.func(self.agents[i, :])
+            self.fitnesses[i] = self.func(self.agents[i, :])
         # find the best agent at the initial time
-        self.fitness_min = np.min(self.fitness)
-        self.best_agent = self.agents[np.argmin(self.fitness), :]
+        self.best_fitness = np.min(self.fitnesses)
+        self.best_agent = self.agents[np.argmin(self.fitnesses), :]
         
     def _clip_agent(self, agent):
         clipped = np.zeros(self.n_dim)
@@ -91,9 +96,9 @@ class DWOA(object):
                 fitness = self.func(agent)
                 # update this agent
                 self.agents[i, :] = agent
-                self.fitness[i] = fitness
+                self.fitnesses[i] = fitness
             
             # find the best at this step
-            self.fitness_min = np.min(self.fitness)
-            self.best_agent = self.agents[np.argmin(self.fitness), :]
-        return self.best_agent, self.fitness_min
+            self.best_fitness = np.min(self.fitnesses)
+            self.best_agent = self.agents[np.argmin(self.fitnesses), :]
+        return self.best_agent, self.best_fitness
