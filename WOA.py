@@ -5,6 +5,9 @@
 
 import numpy as np
 
+class WOABase(object):
+    pass
+
 def _find_nearest_1d(array, value):
     array = np.asarray(array)
     idx = np.argmin(np.abs(array - value))
